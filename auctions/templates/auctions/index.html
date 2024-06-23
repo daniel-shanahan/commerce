@@ -24,6 +24,8 @@
                         <p class="card-text">
                             {{ listing.description }}
                         </p>
+                        <a href="{% url 'listing' listing.id %}"
+                           class="btn btn-primary stretched-link">View Listing</a>
                     </div>
                 </div>
             </div>
