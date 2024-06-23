@@ -1,12 +1,26 @@
+from decimal import Decimal
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.forms import ModelForm, Textarea
 
 from .models import User, Listing
 
 
+# Form Classes
+class ListingForm(ModelForm):
+    class Meta:
+        model = Listing
+        fields = ["title", "description", "starting_bid", "image_url"]
+        widgets = {
+            "description": Textarea(attrs={"cols": 50, "rows": 2}),
+        }
+
+
+# Views
 def index(request):
     listings = Listing.objects.all()
     return render(request, "auctions/index.html", {"listings": listings})
@@ -72,3 +86,21 @@ def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
 
     return render(request, "auctions/listing.html", {"listing": listing})
+
+
+@login_required
+def new(request):
+    if request.method == "POST":
+        listing = ListingForm(request.POST)
+        if not listing.is_valid():
+            return (render, request, "auctions/new.html", {"form": listing})
+        elif Decimal(request.POST["starting_bid"]) <= 0:
+            return render(
+                request,
+                "auctions/new.html",
+                {"form": listing, "message": "Starting bid must be greater than zero."},
+            )
+        else:
+            listing.save()
+            return HttpResponseRedirect(reverse("index"))
+    return render(request, "auctions/new.html", {"form": ListingForm()})
