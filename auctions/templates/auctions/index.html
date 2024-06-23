@@ -1,7 +1,36 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
+    <h2>
+        Active Listings
+    </h2>
 
-    TODO
+    <div class="row">
+        {% for listing in listings %}
+            <div class="col-sm-6 col-lg-4 my-2">
+                <div class="card">
+                    {% if listing.image_url %}
+                        <img class="card-img-top"
+                             src="{{ listing.image_url }}"
+                             alt="{{ listing.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {{ listing.title }}
+                        </h5>
+                        <h6 class="card-subtitle text-muted mb-2">
+                            ${{ listing.starting_bid }}
+                        </h6>
+                        <p class="card-text">
+                            {{ listing.description }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <h3>
+                No listings yet
+            </h3>
+        {% endfor %}
+    </div>
 {% endblock %}
