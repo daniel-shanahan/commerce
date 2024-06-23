@@ -1,0 +1,16 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+  <h2>
+    {{ listing.title }}
+  </h2>
+  <img class="img-fluid my-2 rounded"
+       src="{{ listing.image_url }}"
+       alt="{{ listing.title }}">
+  <p class="mt-4">
+    {{ listing.description }}
+  </p>
+  <h4>
+    ${{ listing.starting_bid }}
+  </h4>
+{% endblock %}
