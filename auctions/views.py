@@ -5,22 +5,11 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.forms import ModelForm, Textarea
 
 from .models import User, Listing
+from .forms import ListingForm
 
 
-# Form Classes
-class ListingForm(ModelForm):
-    class Meta:
-        model = Listing
-        fields = ["title", "description", "starting_bid", "image_url"]
-        widgets = {
-            "description": Textarea(attrs={"cols": 50, "rows": 2}),
-        }
-
-
-# Views
 def index(request):
     listings = Listing.objects.all()
     return render(request, "auctions/index.html", {"listings": listings})
