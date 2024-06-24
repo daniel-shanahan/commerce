@@ -1,0 +1,20 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+  <h2>
+    Categories
+  </h2>
+ 
+  <div class="list-group my-4">
+    {% for category, count in categories.items %}
+      <h5>
+        <a href="{% url 'category' category %}"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          {{ category }}
+          <span class="badge badge-primary badge-pill">{{ count }}</span>
+          <span class="sr-only">listings</span>
+        </a>
+      </h5>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -93,3 +93,20 @@ def new(request):
             listing.save()
             return HttpResponseRedirect(reverse("index"))
     return render(request, "auctions/new.html", {"form": ListingForm()})
+
+
+def categories(request):
+    categories = {}
+    for key, category in Listing.CATEGORY_CHOICES.items():
+        categories[category] = Listing.objects.filter(category=key).count()
+    return render(request, "auctions/categories.html", {"categories": categories})
+
+
+def category(request, category):
+    category_key = list(Listing.CATEGORY_CHOICES.keys())[
+        list(Listing.CATEGORY_CHOICES.values()).index(category)
+    ]
+    listings = Listing.objects.filter(category=category_key)
+    return render(
+        request, "auctions/category.html", {"category": category, "listings": listings}
+    )
