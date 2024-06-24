@@ -90,6 +90,8 @@ def new(request):
                 {"form": listing, "message": "Starting bid must be greater than zero."},
             )
         else:
+            listing = listing.save(commit=False)
+            listing.created_by = request.user
             listing.save()
             return HttpResponseRedirect(reverse("index"))
     return render(request, "auctions/new.html", {"form": ListingForm()})

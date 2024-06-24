@@ -27,6 +27,10 @@ class Listing(models.Model):
         choices=CATEGORY_CHOICES,
         default=ELECTRONICS,
     )
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="listings", null=False
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
