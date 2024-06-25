@@ -13,7 +13,17 @@
   <h4>
     ${{ listing.starting_bid }}
   </h4>
-  <p>
-    <strong>Created by: </strong>{{ listing.created_by }}
-  </p>
+  <div class="my-4">
+    <h5>
+      Details
+    </h5>
+    <ul>
+      <li>
+        <strong>Category: </strong><a href="{% url 'category' listing.get_category_display %}">{{ listing.get_category_display }}</a>
+      </li>
+      <li>
+        <strong>Created by: </strong>{{ listing.created_by }}
+      </li>
+    </ul>
+  </div>
 {% endblock %}
