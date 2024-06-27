@@ -2,16 +2,22 @@ from decimal import Decimal
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing
-from .forms import ListingForm
+from .models import User, Listing, Bid
+from .forms import ListingForm, BidForm
+from .utils import current_price
 
 
 def index(request):
-    listings = Listing.objects.all()
+    listing_values = Listing.objects.all().values()
+    listings = [listing for listing in listing_values]
+
+    for listing in listings:
+        listing["current_price"] = current_price(listing["id"])
+
     return render(request, "auctions/index.html", {"listings": listings})
 
 
@@ -73,8 +79,57 @@ def register(request):
 
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
+    bids = Bid.objects.filter(listing=listing)
 
-    return render(request, "auctions/listing.html", {"listing": listing})
+    # Set initial bid values
+    num_bids = len(bids)
+    current_price = listing.starting_bid
+    leading_bidder = False
+
+    # Update bid values
+    if num_bids > 0:
+        highest_bid = bids.order_by("-amount").first()
+        current_price = highest_bid.amount
+        if highest_bid.created_by.id == request.user.id:
+            leading_bidder = True
+
+    # Set context for template
+    context = {
+        "listing": listing,
+        "num_bids": num_bids,
+        "current_price": current_price,
+        "leading_bidder": leading_bidder,
+        "bid_form": BidForm(),
+    }
+
+    if request.method == "POST":
+        if request.POST["form_type"] == "bid":
+            # Bid
+            bid_form = BidForm(request.POST)
+            if not bid_form.is_valid():
+                # Invalid bid form
+                context["bid_form"] = bid_form
+                return render(request, "auctions/listing.html", context)
+            else:
+                minimum_bid = (
+                    current_price
+                    if num_bids == 0
+                    else current_price + round(Decimal(0.01), 2)
+                )
+                if bid_form.cleaned_data["amount"] < minimum_bid:
+                    # Bid amount below minimum
+                    context["bid_form"] = bid_form
+                    context["bid_message"] = f"Bid must be at least ${minimum_bid}."
+                    return render(request, "auctions/listing.html", context)
+                else:
+                    # Successful bid
+                    bid = bid_form.save(commit=False)
+                    bid.created_by = request.user
+                    bid.listing = listing
+                    bid.save()
+                    return HttpResponseRedirect(reverse("listing", args=(listing_id,)))
+
+    return render(request, "auctions/listing.html", context)
 
 
 @login_required
@@ -82,8 +137,8 @@ def new(request):
     if request.method == "POST":
         listing = ListingForm(request.POST)
         if not listing.is_valid():
-            return (render, request, "auctions/new.html", {"form": listing})
-        elif Decimal(request.POST["starting_bid"]) <= 0:
+            return render(request, "auctions/new.html", {"form": listing})
+        elif Decimal(listing.cleaned_data["starting_bid"]) <= 0:
             return render(
                 request,
                 "auctions/new.html",

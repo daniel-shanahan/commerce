@@ -1,6 +1,6 @@
 from django.forms import ModelForm, Textarea
 
-from .models import Listing
+from .models import Listing, Bid
 
 
 class ListingForm(ModelForm):
@@ -19,3 +19,16 @@ class ListingForm(ModelForm):
         self.fields["starting_bid"].widget.attrs.update({"class": "form-control mb-3"})
         self.fields["image_url"].widget.attrs.update({"class": "form-control mb-3"})
         self.fields["category"].widget.attrs.update({"class": "form-control mb-3"})
+
+
+class BidForm(ModelForm):
+    class Meta:
+        model = Bid
+        fields = ["amount"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["amount"].widget.attrs.update(
+            {"class": "form-control mb-3", "placeholder": "$100.00"}
+        )
+        self.fields["amount"].label = "Bid Amount"

@@ -46,3 +46,6 @@ class Bid(models.Model):
         User, on_delete=models.CASCADE, related_name="bids", null=False
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"${self.amount} on {self.listing.title} by {self.created_by.first_name}"
