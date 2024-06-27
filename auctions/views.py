@@ -8,15 +8,11 @@ from django.urls import reverse
 
 from .models import User, Listing, Bid
 from .forms import ListingForm, BidForm
-from .utils import current_price
+from .utils import listings_with_current_price
 
 
 def index(request):
-    listing_values = Listing.objects.all().values()
-    listings = [listing for listing in listing_values]
-
-    for listing in listings:
-        listing["current_price"] = current_price(listing["id"])
+    listings = listings_with_current_price(Listing.objects.all())
 
     return render(request, "auctions/index.html", {"listings": listings})
 
@@ -163,7 +159,9 @@ def category(request, category):
     category_key = list(Listing.CATEGORY_CHOICES.keys())[
         list(Listing.CATEGORY_CHOICES.values()).index(category)
     ]
-    listings = Listing.objects.filter(category=category_key)
+    listings = listings_with_current_price(
+        Listing.objects.filter(category=category_key)
+    )
     return render(
         request, "auctions/category.html", {"category": category, "listings": listings}
     )
