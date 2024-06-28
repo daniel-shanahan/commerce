@@ -1,8 +1,12 @@
 {% extends "auctions/layout.html" %}
 
+{% block title %}
+    {{ title }}
+{% endblock %}
+
 {% block body %}
     <h2>
-        Active Listings
+        {{ title }}
     </h2>
 
     <div class="row">

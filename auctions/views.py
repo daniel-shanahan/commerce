@@ -14,7 +14,11 @@ from .utils import listings_with_current_price
 def index(request):
     listings = listings_with_current_price(Listing.objects.all())
 
-    return render(request, "auctions/index.html", {"listings": listings})
+    return render(
+        request,
+        "auctions/index.html",
+        {"listings": listings, "title": "Active Listings"},
+    )
 
 
 def login_view(request):
@@ -163,5 +167,5 @@ def category(request, category):
         Listing.objects.filter(category=category_key)
     )
     return render(
-        request, "auctions/category.html", {"category": category, "listings": listings}
+        request, "auctions/index.html", {"title": category, "listings": listings}
     )
