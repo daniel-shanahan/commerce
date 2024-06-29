@@ -81,6 +81,11 @@ def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     bids = Bid.objects.filter(listing=listing)
 
+    # Check if listing is on the current user's watchlist
+    on_watchlist = False
+    if request.user.id is not None:
+        on_watchlist = User.objects.get(pk=request.user.id).watchlist.contains(listing)
+
     # Set initial bid values
     num_bids = len(bids)
     current_price = listing.starting_bid
@@ -99,6 +104,7 @@ def listing(request, listing_id):
         "num_bids": num_bids,
         "current_price": current_price,
         "leading_bidder": leading_bidder,
+        "on_watchlist": on_watchlist,
         "bid_form": BidForm(),
     }
 
@@ -180,3 +186,18 @@ def watchlist(request):
     return render(
         request, "auctions/index.html", {"title": "Watchlist", "listings": watchlist}
     )
+
+
+@login_required
+def watch(request, listing_id):
+    user = User.objects.get(pk=request.user.id)
+    listing = Listing.objects.get(pk=listing_id)
+
+    on_watchlist = user.watchlist.contains(listing)
+
+    if not on_watchlist:
+        user.watchlist.add(listing)
+    else:
+        user.watchlist.remove(listing)
+
+    return HttpResponseRedirect(reverse("listing", args=(listing_id,)))

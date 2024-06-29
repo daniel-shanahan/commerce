@@ -8,6 +8,16 @@
   <h2>
     {{ listing.title }}
   </h2>
+  {% if user.is_authenticated %}
+    <form action="{% url 'watch' listing.id %}" method="post">
+{% csrf_token %}
+      {% if on_watchlist %}
+        <input type="submit" value="Remove from Watchlist" class="btn btn-secondary">
+      {% else %}
+        <input type="submit" value="Add to Watchlist" class="btn btn-primary">
+      {% endif %}
+    </form>
+  {% endif %}
   <img class="img-fluid my-2 rounded"
        src="{{ listing.image_url }}"
        alt="{{ listing.title }}">
