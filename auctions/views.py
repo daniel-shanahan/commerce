@@ -169,3 +169,14 @@ def category(request, category):
     return render(
         request, "auctions/index.html", {"title": category, "listings": listings}
     )
+
+
+@login_required
+def watchlist(request):
+    watchlist = listings_with_current_price(
+        User.objects.get(pk=request.user.id).watchlist.all()
+    )
+
+    return render(
+        request, "auctions/index.html", {"title": "Watchlist", "listings": watchlist}
+    )

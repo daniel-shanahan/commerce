@@ -6,6 +6,7 @@ from .models import Listing, User, Bid
 # Register your models here.
 class UserAdmin(admin.ModelAdmin):
     list_display = ("username", "first_name", "last_name", "email")
+    filter_horizontal = ("watchlist",)
 
 
 admin.site.register(Listing)
