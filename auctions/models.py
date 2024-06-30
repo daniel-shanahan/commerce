@@ -28,6 +28,13 @@ class Listing(models.Model):
         default=ELECTRONICS,
     )
     is_active = models.BooleanField(default=True)
+    winning_bidder = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="listings_won",
+        blank=True,
+        null=True,
+    )
     created_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="listings", null=False
     )

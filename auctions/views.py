@@ -13,7 +13,7 @@ from .utils import listings_with_current_price
 
 def index(request):
     listings = listings_with_current_price(
-        Listing.objects.all().order_by("-created_at")
+        Listing.objects.filter(is_active=True).order_by("-created_at")
     )
 
     return render(
@@ -101,9 +101,6 @@ def listing(request, listing_id):
         if highest_bid.created_by.id == request.user.id:
             leading_bidder = True
 
-    for comment in comments:
-        print(comment.created_by, comment.created_at)
-
     # Set context for template
     context = {
         "listing": listing,
@@ -181,7 +178,9 @@ def new(request):
 def categories(request):
     categories = {}
     for key, category in Listing.CATEGORY_CHOICES.items():
-        categories[category] = Listing.objects.filter(category=key).count()
+        categories[category] = Listing.objects.filter(
+            category=key, is_active=True
+        ).count()
     return render(request, "auctions/categories.html", {"categories": categories})
 
 
@@ -190,7 +189,9 @@ def category(request, category):
         list(Listing.CATEGORY_CHOICES.values()).index(category)
     ]
     listings = listings_with_current_price(
-        Listing.objects.filter(category=category_key).order_by("-created_at")
+        Listing.objects.filter(category=category_key, is_active=True).order_by(
+            "-created_at"
+        )
     )
     return render(
         request, "auctions/index.html", {"title": category, "listings": listings}
@@ -200,7 +201,9 @@ def category(request, category):
 @login_required
 def watchlist(request):
     watchlist = listings_with_current_price(
-        User.objects.get(pk=request.user.id).watchlist.all()
+        User.objects.get(pk=request.user.id)
+        .watchlist.filter(is_active=True)
+        .order_by("-created_at")
     )
 
     return render(
@@ -221,3 +224,14 @@ def watch(request, listing_id):
         user.watchlist.remove(listing)
 
     return HttpResponseRedirect(reverse("listing", args=(listing_id,)))
+
+
+@login_required
+def close(request, listing_id):
+    user = User.objects.get(pk=request.user.id)
+    listing = Listing.objects.get(pk=listing_id)
+
+    if listing.created_by == user:
+        listing.is_active = False
+
+    return HttpResponseRedirect(reverse("index"))
