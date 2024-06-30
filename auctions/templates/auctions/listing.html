@@ -5,18 +5,35 @@
 {% endblock %}
 
 {% block body %}
-  <h2 class="mb-4">
-    {{ listing.title }}
-  </h2>
-  {% if user.is_authenticated %}
-    <form action="{% url 'watch' listing.id %}" method="post" class="mb-4">
+  <div class="d-flex justify-content-between mb-3">
+    <h2>
+      {{ listing.title }}
+    </h2>
+    {% if user.is_authenticated %}
+      <form action="{% url 'watch' listing.id %}" method="post">
 {% csrf_token %}
-      {% if on_watchlist %}
-        <input type="submit" value="Remove from Watchlist" class="btn btn-secondary">
-      {% else %}
-        <input type="submit" value="Add to Watchlist" class="btn btn-primary">
-      {% endif %}
-    </form>
+        {% if on_watchlist %}
+          <input type="submit" value="Remove from Watchlist" class="btn btn-secondary">
+        {% else %}
+          <input type="submit" value="Add to Watchlist" class="btn btn-primary">
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+  {% if not listing.is_active %}
+    {% if user.is_authenticated and leading_bidder %}
+      <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">
+          Congratulations!
+        </h4>
+        <p class="mb-0">
+          You have won this auction.
+        </p>
+      </div>
+    {% endif %}
+    <h5 class="text-muted mb-4">
+      This listing is closed.
+    </h5>
   {% endif %}
   <img class="img-fluid mb-3 rounded"
        src="{{ listing.image_url }}"
@@ -28,20 +45,30 @@
     <h4 class="mb-2">
       ${{ current_price }}
     </h4>
-    <p class="mb-2">
-      {{ num_bids }} bid(s) so far.
-      {% if leading_bidder %}
-        Yours is the highest bid.
-      {% else %}
-        You are not the leading bidder.
-      {% endif %}
-    </p>
+    {% if listing.is_active %}
+      <p class="mb-2">
+        {{ num_bids }} bid(s) so far.
+        {% if leading_bidder %}
+          Yours is the highest bid.
+        {% else %}
+          You are not the leading bidder.
+        {% endif %}
+      </p>
+    {% else %}
+      <p class="text-muted mb-2">
+        {% if leading_bidder %}
+          You won this item!
+        {% else %}
+          You did not win this item.
+        {% endif %}
+      </p>
+    {% endif %}
     {% if bid_message %}
       <div class="alert alert-danger" role="alert">
         {{ bid_message }}
       </div>
     {% endif %}
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and listing.is_active %}
       <form action="{% url 'listing' listing.id %}" method="post">
 {% csrf_token %}
         <input type="hidden" name="form_type" value="bid">
@@ -67,7 +94,7 @@
     <h5 class="mb-2">
       Comments
     </h5>
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and listing.is_active %}
       <form action="{% url 'listing' listing.id %}"
             method="post"
             class="mt-2 mb-4">
