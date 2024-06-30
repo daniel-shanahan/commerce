@@ -6,13 +6,15 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing, Bid
-from .forms import ListingForm, BidForm
+from .models import User, Listing, Bid, Comment
+from .forms import ListingForm, BidForm, CommentForm
 from .utils import listings_with_current_price
 
 
 def index(request):
-    listings = listings_with_current_price(Listing.objects.all())
+    listings = listings_with_current_price(
+        Listing.objects.all().order_by("-created_at")
+    )
 
     return render(
         request,
@@ -80,6 +82,7 @@ def register(request):
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     bids = Bid.objects.filter(listing=listing)
+    comments = Comment.objects.filter(listing=listing).order_by("created_at")
 
     # Check if listing is on the current user's watchlist
     on_watchlist = False
@@ -98,6 +101,9 @@ def listing(request, listing_id):
         if highest_bid.created_by.id == request.user.id:
             leading_bidder = True
 
+    for comment in comments:
+        print(comment.created_by, comment.created_at)
+
     # Set context for template
     context = {
         "listing": listing,
@@ -105,7 +111,9 @@ def listing(request, listing_id):
         "current_price": current_price,
         "leading_bidder": leading_bidder,
         "on_watchlist": on_watchlist,
+        "comments": comments,
         "bid_form": BidForm(),
+        "comment_form": CommentForm(),
     }
 
     if request.method == "POST":
@@ -134,6 +142,18 @@ def listing(request, listing_id):
                     bid.listing = listing
                     bid.save()
                     return HttpResponseRedirect(reverse("listing", args=(listing_id,)))
+        elif request.POST["form_type"] == "comment":
+            # Comment
+            comment_form = CommentForm(request.POST)
+            if not comment_form.is_valid():
+                context["comment_form"] = comment_form
+                return render(request, "auctions/listing.html", context)
+            else:
+                comment = comment_form.save(commit=False)
+                comment.created_by = request.user
+                comment.listing = listing
+                comment.save()
+                return HttpResponseRedirect(reverse("listing", args=(listing_id,)))
 
     return render(request, "auctions/listing.html", context)
 
@@ -170,7 +190,7 @@ def category(request, category):
         list(Listing.CATEGORY_CHOICES.values()).index(category)
     ]
     listings = listings_with_current_price(
-        Listing.objects.filter(category=category_key)
+        Listing.objects.filter(category=category_key).order_by("-created_at")
     )
     return render(
         request, "auctions/index.html", {"title": category, "listings": listings}

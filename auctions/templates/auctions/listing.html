@@ -5,11 +5,11 @@
 {% endblock %}
 
 {% block body %}
-  <h2>
+  <h2 class="mb-4">
     {{ listing.title }}
   </h2>
   {% if user.is_authenticated %}
-    <form action="{% url 'watch' listing.id %}" method="post">
+    <form action="{% url 'watch' listing.id %}" method="post" class="mb-4">
 {% csrf_token %}
       {% if on_watchlist %}
         <input type="submit" value="Remove from Watchlist" class="btn btn-secondary">
@@ -18,17 +18,17 @@
       {% endif %}
     </form>
   {% endif %}
-  <img class="img-fluid my-2 rounded"
+  <img class="img-fluid mb-3 rounded"
        src="{{ listing.image_url }}"
        alt="{{ listing.title }}">
-  <p class="mt-4">
+  <p class="mb-3">
     {{ listing.description }}
   </p>
-  <div class="my-2">
-    <h4>
+  <div class="mb-5">
+    <h4 class="mb-2">
       ${{ current_price }}
     </h4>
-    <p>
+    <p class="mb-2">
       {{ num_bids }} bid(s) so far.
       {% if leading_bidder %}
         Yours is the highest bid.
@@ -50,7 +50,7 @@
       </form>
     {% endif %}
   </div>
-  <div class="my-4">
+  <div class="mb-5">
     <h5>
       Details
     </h5>
@@ -62,5 +62,32 @@
         <strong>Created by: </strong>{{ listing.created_by }}
       </li>
     </ul>
+  </div>
+  <div class="mb-3">
+    <h5 class="mb-2">
+      Comments
+    </h5>
+    {% if user.is_authenticated %}
+      <form action="{% url 'listing' listing.id %}"
+            method="post"
+            class="mt-2 mb-4">
+{% csrf_token %}
+        <input type="hidden" name="form_type" value="comment">
+          {{ comment_form }}
+        <input type="submit" value="Post" class="btn btn-primary">
+      </form>
+    {% endif %}
+    {% for comment in comments %}
+      <div class="card my-2">
+        <div class="card-body">
+          <h6 class="card-title text-muted">
+            {{ comment.created_by.first_name }} {{ comment.created_by.last_name }}
+          </h6>
+          <p class="card-text">
+{{ comment.text }}
+          </p>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 {% endblock %}

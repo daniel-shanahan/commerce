@@ -1,6 +1,6 @@
 from django.forms import ModelForm, Textarea
 
-from .models import Listing, Bid
+from .models import Listing, Bid, Comment
 
 
 class ListingForm(ModelForm):
@@ -32,3 +32,18 @@ class BidForm(ModelForm):
             {"class": "form-control mb-3", "placeholder": "$100.00"}
         )
         self.fields["amount"].label = "Bid Amount"
+
+
+class CommentForm(ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["text"]
+        widgets = {
+            "text": Textarea(
+                attrs={"cols": 50, "rows": 2, "class": "form-control mb-3"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["text"].label = "Add a Comment"
