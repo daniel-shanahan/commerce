@@ -10,14 +10,23 @@
       {{ listing.title }}
     </h2>
     {% if user.is_authenticated %}
-      <form action="{% url 'watch' listing.id %}" method="post">
+      {% if listing.created_by.id is user.id %}
+        {% if listing.is_active %}
+          <form action="{% url 'close' listing.id %}" method="post">
 {% csrf_token %}
-        {% if on_watchlist %}
-          <input type="submit" value="Remove from Watchlist" class="btn btn-secondary">
-        {% else %}
-          <input type="submit" value="Add to Watchlist" class="btn btn-primary">
+            <input type="submit" value="Close Listing" class="btn btn-danger">
+          </form>
         {% endif %}
-      </form>
+      {% else %}
+        <form action="{% url 'watch' listing.id %}" method="post">
+{% csrf_token %}
+          {% if on_watchlist %}
+            <input type="submit" value="Remove from Watchlist" class="btn btn-secondary">
+          {% else %}
+            <input type="submit" value="Add to Watchlist" class="btn btn-primary">
+          {% endif %}
+        </form>
+      {% endif %}
     {% endif %}
   </div>
   {% if not listing.is_active %}

@@ -228,10 +228,15 @@ def watch(request, listing_id):
 
 @login_required
 def close(request, listing_id):
-    user = User.objects.get(pk=request.user.id)
     listing = Listing.objects.get(pk=listing_id)
 
-    if listing.created_by == user:
-        listing.is_active = False
+    if listing.created_by.id == request.user.id:
+        # Set winning bidder, if listing had one or more bids
+        winning_bid = listing.bids.order_by("-amount").first()
+        if winning_bid is not None:
+            listing.winning_bidder = winning_bid.created_by
 
-    return HttpResponseRedirect(reverse("index"))
+        listing.is_active = False
+        listing.save()
+
+    return HttpResponseRedirect(reverse("listing", args=(listing_id,)))
