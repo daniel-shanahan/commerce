@@ -240,3 +240,16 @@ def close(request, listing_id):
         listing.save()
 
     return HttpResponseRedirect(reverse("listing", args=(listing_id,)))
+
+
+@login_required
+def listings_won(request):
+    listings_won = listings_with_current_price(
+        User.objects.get(pk=request.user.id).listings_won.order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "auctions/index.html",
+        {"title": "Listings Won", "listings": listings_won},
+    )
